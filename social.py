@@ -47,26 +47,42 @@ def getdb(create=False):
     return con
 
 @click.command()
-@click.argument('name')
 @click.argument('email')
-def adduser(name, email):
+@click.argument('name') #arguements for following function 
+
+def adduser(email,name):
      with getdb() as con:
-        print('Creating user with name and email address:', name," and ",email)
+        print('Creating user with name and email address:', email," and ",name)
         cursor = con.cursor()
-        cursor.execute('INSERT INTO Users (name,email) VALUES (?,?)', (name,email))
+        cursor.execute('INSERT INTO Users (email,name) VALUES (?,?)', (email,name))
         id = cursor.lastrowid
         print(f'Inserted with id={id}')
 
-@click.command()
-@click.argument('username')
-@click.argument('email')
-def addaccount(email, username):
+
+
+'''CREATE TABLE Listings (
+    id          INTEGER PRIMARY KEY,
+    userId      INTEGER NOT NULL,
+    title       TEXT NOT NULL,
+    description TEXT NOT NULL,
+    xCoordinate REAL NOT NULL,  -- storing as REAL to accommodate floating-point numbers
+    yCoordinate REAL NOT NULL,
+    FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE CASCADE
+);'''
+@click.command() #add listing / address to address table click 
+@click.argument('userId')
+@click.argument('title')
+@click.argument('description')
+@click.argument('xCoordinate')
+@click.argument('yCoordinate')
+
+def addListing(title, description, xCoordinate, yCoordinate):
      with getdb() as con:
-        print('Creating account with username:', username, 'for email:', email)
+        print('Creating Listing with title:', title, 'location at:', xCoordinate, " " , yCoordinate)
         cursor = con.cursor()
-        cursor.execute('''INSERT INTO Accounts (userId, userName)
-                        VALUES ((SELECT id FROM Users WHERE email = ?), ?)''', (email, username))
-        id = cursor.lastrowid
+        cursor.execute('''INSERT INTO Listings (userId, title, description, xCoordinate, yCoordinate)
+                        VALUES (?,?,?,?,?)''', (userId, str(title), str(description), xCoordinate, yCoordinate))
+        id = cursor.lastrowid #?
         print(f'Inserted with id={id}')
 
 @click.command()
