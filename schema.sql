@@ -8,10 +8,16 @@ CREATE TABLE Listings (
     userId      INTEGER NOT NULL,
     title       TEXT NOT NULL,
     description TEXT NOT NULL,
-    xCoordinate REAL NOT NULL,  -- storing as REAL to accommodate floating-point numbers
-    yCoordinate REAL NOT NULL,
     FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE CASCADE
 );
+CREATE TABLE ADDRESS (
+    id          INTEGER PRIMARY KEY,
+    listingId   INTEGER NOT NULL,
+    x           INTEGER NOT NULL CHECK (day BETWEEN 1 AND 100),
+    y           INTEGER NOT NULL CHECK (day BETWEEN 1 AND 100),
+    FOREIGN KEY (listingId) REFERENCES Listings(id) ON DELETE CASCADE
+);
+
 
 CREATE TABLE Reservations (
     id         INTEGER PRIMARY KEY,
