@@ -1,40 +1,40 @@
 #!/bin/bash
 rm -f database.db
 # Path to your Python script
-PYTHON_SCRIPT="./social.py"
+PYTHON_SCRIPT="./final.py"
 
 # Create the database and schema
 python3 $PYTHON_SCRIPT create
-python3 $PYTHON_SCRIPT adduser "test" "test"
-python3 $PYTHON_SCRIPT addaccount "test" "test"
-python3 $PYTHON_SCRIPT createpost "test" "test" "test"
-python3 $PYTHON_SCRIPT follow "test" "test"
-
-
-$(python3 $PYTHON_SCRIPT follow "test" "test2")  # Store the id in a variable
-
 
 # Number of users to add
 NUM_USERS=20
-# Add users and accounts in a loop
+
+# Add users in a loop
 for i in $(seq 1 $NUM_USERS); do
     # Generate a unique username and email for each user
     USERNAME="User${i}"
     EMAIL="user${i}@example.com"
     
     # Add user
-    python3 $PYTHON_SCRIPT adduser "$USERNAME" "$EMAIL"
+    python3 $PYTHON_SCRIPT adduser "$EMAIL" "$USERNAME"
     
-    # Add account for user
-    python3 $PYTHON_SCRIPT addaccount "${USERNAME}" "$EMAIL" 
-    python3 $PYTHON_SCRIPT follow "${USERNAME}" "test"
-    python3 $PYTHON_SCRIPT comment "${USERNAME}" "1" "test"  # Use the stored id
+    # Add listing for each user
+    TITLE="${USERNAME}'s Listing"
+    DESCRIPTION="This is a listing by ${USERNAME}."
+    XCOORDINATE=$(((RANDOM % 100) + 1))
+    YCOORDINATE=$(((RANDOM % 100) + 1))
+    echo "Adding listing for $USERNAME at ($XCOORDINATE, $YCOORDINATE)"
+    python3 $PYTHON_SCRIPT addlisting "$USERNAME" "$TITLE" "$DESCRIPTION" "$XCOORDINATE" "$YCOORDINATE"
     
-    # Create a post for each user
-    TITLE="${USERNAME}'s Post"
-    CONTENT="This is a post by ${USERNAME}."
-    id=$(python3 $PYTHON_SCRIPT createpost "${USERNAME}" "$TITLE" "$CONTENT")  # Store the id in a variable
-    echo "Inserted with id=$id"
+    # Add reservation
+    DAY1=$(( (RANDOM % 90) + 1))
+    DAY2=$(( DAY1 + (RANDOM % 10) + 1))
+    python3 $PYTHON_SCRIPT reserve "$USERNAME" "${i}" "$DAY1" "$DAY2"
+    
+    # Add review
+    RATING=$(( (RANDOM % 5) + 1))
+    COMMENT="This is a review by ${i}."
+    python3 $PYTHON_SCRIPT rate "$USERNAME" "${i}" "$RATING" "$COMMENT"
 done
 
-echo "Database populated with $NUM_USERS users, accounts, and posts."
+echo "Database populated with $NUM_USERS users, listings, reservations, and reviews."
