@@ -89,9 +89,13 @@ def searchRadius(x,y,radius):
     with getdb() as con:
         cursor = con.cursor ()
         cursor.execute('''
-            SELECT Listings.id, Listings.title, Listings.description, Locations.x, Locations.y, SQRT((Locations.x - ?) * (Locations.x - ?) + (Locations.y - ?) * (Locations.y - ?)) AS distance
+            SELECT Listings.id, Listings.title, Listings.description, Locations.x, Locations.y, SQRT((Locations.x - ?) * (Locations.x - ?) + (Locations.y - ?) * (Locations.y - ?)) AS distance, avg_rating, Ratings.avg_rating
             FROM Listings
             JOIN Locations ON Listings.id = Locations.listingId
+            JOIN 
+            (SELECT listingId, AVG(rating) AS avg_rating
+            FROM Ratings
+            GROUP BY listingId) AS Ratings ON Listings.id = Ratings.listingId
             WHERE ((Locations.x - ?) * (Locations.x - ?) + (Locations.y - ?) * (Locations.y - ?)) < ? * ?
             ''', (x,x,y,y,x, x, y, y, radius, radius))
         rows = cursor.fetchall()
@@ -104,7 +108,9 @@ def searchRadius(x,y,radius):
                 xCoordinate: {row[3]}
                 yCoordinate: {row[4]}
                 Distance: {row[5]} Cordinates
+                Average Rating: {row[6]}
             """)
+
 
 @click.command()
 @click.argument('username')
@@ -273,10 +279,24 @@ def searchAll(x,y):
     with getdb() as con:
         cursor = con.cursor()
         cursor.execute('''
-            SELECT Listings.*, SQRT((Locations.x - ?)*(Locations.x - ?) + (Locations.x - ?)*(Locations.x - ?)) AS distance
-            FROM Listings
-            JOIN Locations ON Listings.id = Locations.listingId
-            ORDER BY distance
+        SELECT 
+            Listings.id, 
+            Listings.Title, 
+            Listings.Description,
+            Locations.x, 
+            Locations.y, 
+            SQRT((Locations.x - ?)*(Locations.x - ?) + (Locations.y - ?)*(Locations.y - ?)) AS distance, 
+            Ratings.avg_rating
+        FROM 
+            Listings
+        JOIN 
+            Locations ON Listings.id = Locations.listingId
+        JOIN 
+            (SELECT listingId, AVG(rating) AS avg_rating
+            FROM Ratings
+            GROUP BY listingId) AS Ratings ON Listings.id = Ratings.listingId
+        ORDER BY 
+            distance;
             ''', (x,x,y, y))
         rows = cursor.fetchall()
         print('Found', len(rows), 'listings near location:', x, y)
@@ -287,7 +307,82 @@ def searchAll(x,y):
                 Description: {row[2]}
                 xCoordinate: {row[3]}
                 yCoordinate: {row[4]}
+                Distance: {row[5]}
+                Average Rating: {row[6]}
+          
             """)
+
+@click.command()
+@click.argument('x')
+@click.argument('y')
+@click.argument('day1')
+@click.argument('day2')
+def searchday(x,y,day1,day2):
+    print('Searching for listings available between:', day1, 'and', day2, 'near location:', x, y)
+    with getdb() as con:
+        cursor = con.cursor()
+        cursor.execute('''
+            SELECT 
+                Listings.id, 
+                Listings.Title, 
+                Listings.Description,
+                Locations.x, 
+                Locations.y, 
+                SQRT((Locations.x - ?)*(Locations.x - ?) + (Locations.y - ?)*(Locations.y - ?)) AS distance, 
+                Ratings.avg_rating
+            FROM 
+                Listings
+            JOIN 
+                Locations ON Listings.id = Locations.listingId
+            JOIN 
+                (SELECT listingId, AVG(rating) AS avg_rating
+                FROM Ratings
+                GROUP BY listingId) AS Ratings ON Listings.id = Ratings.listingId
+            WHERE 
+                Listings.id NOT IN (
+                    SELECT 
+                        listingId
+                    FROM 
+                        Reservations
+                    WHERE 
+                        NOT (day2 < ? OR day1 > ?)
+                )
+            ORDER BY 
+                distance;
+            ''', (x,x,y, y, day1, day2))
+        rows = cursor.fetchall()
+        print('Found', len(rows), 'listings available between:', day1, 'and', day2, 'near location:', x, y)
+        for row in rows:
+            print(f"""
+                Id: {row[0]}
+                Title: {row[1]}
+                Description: {row[2]}
+                xCoordinate: {row[3]}
+                yCoordinate: {row[4]}
+                Distance: {row[5]}
+                Average Rating: {row[6]}
+            """)
+
+@click.command()
+def help():
+    print('Commands:')
+    print('create')
+    print('adduser <email> <name>')
+    print('addListing <username> <title> <description> <xcoordinate> <ycoordinate>')
+    print('searchRadius <x> <y> <radius>')
+    print('searchAll <x> <y>')
+    print('userlistings <username>')
+    print('delete <username> <listingid>')
+    print('reserve <username> <listingid> <day1> <day2>')
+    print('userreservations <username>')
+    print('listingreservations <listingid>')
+    print('cancel <username> <listingid>')
+    print('rate <username> <listingid> <rating> <comment>')
+    print('listingrating <listingid>')
+    print('searchday <x> <y> <day1> <day2>')
+    print('help')
+
+
 
 
 def verifyUser(userName):
@@ -319,6 +414,8 @@ cli.add_command(listingreservations)
 cli.add_command(cancel)
 cli.add_command(rate)
 cli.add_command(listingrating)
+cli.add_command(searchday)
+cli.add_command(help)
 
 
 cli()
