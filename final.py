@@ -83,8 +83,8 @@ def addListing(username,title, description, xcoordinate, ycoordinate):
 @click.command()
 @click.argument('x')
 @click.argument('y')
-@click.argument('radius')
-def searchRadius(x,y,radius):
+@click.argument('radius', required=False, default=100)
+def search(x,y,radius):
     print('Searching for listings within radius:', radius, 'from location:', x, y)
     with getdb() as con:
         cursor = con.cursor ()
@@ -271,46 +271,49 @@ def listingrating(listingid):
                 Comment: {row[4]}
             """)
 
-@click.command()
-@click.argument('x')
-@click.argument('y')
-def searchAll(x,y):
-    print('Searching for listings near location:', x, y)
-    with getdb() as con:
-        cursor = con.cursor()
-        cursor.execute('''
-        SELECT 
-            Listings.id, 
-            Listings.Title, 
-            Listings.Description,
-            Locations.x, 
-            Locations.y, 
-            SQRT((Locations.x - ?)*(Locations.x - ?) + (Locations.y - ?)*(Locations.y - ?)) AS distance, 
-            Ratings.avg_rating
-        FROM 
-            Listings
-        JOIN 
-            Locations ON Listings.id = Locations.listingId
-        JOIN 
-            (SELECT listingId, AVG(rating) AS avg_rating
-            FROM Ratings
-            GROUP BY listingId) AS Ratings ON Listings.id = Ratings.listingId
-        ORDER BY 
-            distance;
-            ''', (x,x,y, y))
-        rows = cursor.fetchall()
-        print('Found', len(rows), 'listings near location:', x, y)
-        for row in rows:
-            print(f"""
-                Id: {row[0]}
-                Title: {row[1]}
-                Description: {row[2]}
-                xCoordinate: {row[3]}
-                yCoordinate: {row[4]}
-                Distance: {row[5]}
-                Average Rating: {row[6]}
+# @click.command()
+# @click.argument('x')
+# @click.argument('y')
+# @click.argument('radius',required=False)
+# def searchAll(x,y,radius=0):
+#     print('Searching for listings near location:', x, y)
+#     with getdb() as con:
+#         cursor = con.cursor()
+#         cursor.execute('''
+#         SELECT 
+#             Listings.id, 
+#             Listings.Title, 
+#             Listings.Description,
+#             Locations.x, 
+#             Locations.y, 
+#             SQRT((Locations.x - ?)*(Locations.x - ?) + (Locations.y - ?)*(Locations.y - ?)) AS distance, 
+#             Ratings.avg_rating
+#         FROM 
+#             Listings
+#         JOIN 
+#             Locations ON Listings.id = Locations.listingId
+#         JOIN 
+#             (SELECT listingId, AVG(rating) AS avg_rating
+#             FROM Ratings
+#             GROUP BY listingId) AS Ratings ON Listings.id = Ratings.listingId
+#         ORDER BY 
+#             distance;
+#         HAVING 
+#             distance < ?;
+#             ''', (x,x,y, y))
+#         rows = cursor.fetchall()
+#         print('Found', len(rows), 'listings near location:', x, y)
+#         for row in rows:
+#             print(f"""
+#                 Id: {row[0]}
+#                 Title: {row[1]}
+#                 Description: {row[2]}
+#                 xCoordinate: {row[3]}
+#                 yCoordinate: {row[4]}
+#                 Distance: {row[5]}
+#                 Average Rating: {row[6]}
           
-            """)
+#             """)
 
 @click.command()
 @click.argument('x')
@@ -369,8 +372,8 @@ def help():
     print('create')
     print('adduser <email> <name>')
     print('addListing <username> <title> <description> <xcoordinate> <ycoordinate>')
-    print('searchRadius <x> <y> <radius>')
-    print('searchAll <x> <y>')
+    print('search <x> <y> <radius (optional)>')
+    # print('searchAll <x> <y>')
     print('userlistings <username>')
     print('delete <username> <listingid>')
     print('reserve <username> <listingid> <day1> <day2>')
@@ -404,8 +407,8 @@ def verifyUser(userName):
 cli.add_command(create)
 cli.add_command(adduser)
 cli.add_command(addListing)
-cli.add_command(searchRadius)
-cli.add_command(searchAll)
+# cli.add_command(searchRadius)
+cli.add_command(search)
 cli.add_command(userlistings)
 cli.add_command(delete)
 cli.add_command(reserve)
