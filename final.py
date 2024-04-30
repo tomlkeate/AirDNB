@@ -1,5 +1,20 @@
 #!/usr/bin/env python3
-
+# commands
+# python3 final.py create
+# python3 final.py adduser EMAIL USERNAME
+# python3 final.py addlisting USERNAME TITLE DESCRIPTION XCOORDINATE YCOORDINATE 
+# python3 final.py reserve USERNAME LISTINGID STARTDATE ENDDATE
+# python3 final.py search XCOORDINATE YCOORDINATE  RADIUS
+# python3 final.py userlistings USERNAME
+# python3 final.py delete USERNAME LISTINGID
+# python3 final.py reserve USERNAME LISTINGID STARTDATE ENDDATE
+# python3 final.py userreservations USERNAME
+# python3 final.py listingreservations LISTINGID
+# python3 final.py cancel USERNAME LISTINGID
+# python3 final.py rate USERNAME LISTINGID RATING COMMENT
+# python3 final.py listingrating LISTINGID
+# python3 final.py searchday XCOORDINATE YCOORDINATE STARTDATE ENDDATE
+# python3 final.py help
 
 import click
 import sqlite3
@@ -440,3 +455,4 @@ cli.add_command(help)
 
 
 cli()
+
