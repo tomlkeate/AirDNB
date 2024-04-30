@@ -18,7 +18,6 @@ CREATE TABLE Locations (
     FOREIGN KEY (listingId) REFERENCES Listings(id) ON DELETE CASCADE
 );
 
-
 CREATE TABLE Reservations (
     id         INTEGER PRIMARY KEY,
     listingId  INTEGER NOT NULL,
