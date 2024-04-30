@@ -218,6 +218,24 @@ def listingreservations(listingid):
             """)
 
 @click.command()
+@click.argument('userId')
+@click.arguement('listingId')
+
+def listingreservations(,userId, listingId):
+    print('All reservations for user currently: ')
+    with getdb() as con:
+        cursor = con.cursor()
+        cursor.execute('SELECT * FROM Reservations WHERE ? = ?', (userId,listingid))
+        rows = cursor.fetchall()
+        for row in rows:
+            print(f"""
+                Id: {row[0]}
+                UserId: {row[1]}
+                Day1: {row[3]}
+                Day2: {row[4]}
+            """)
+
+@click.command()
 @click.argument('username')
 @click.argument('listingid')
 def cancel(username, listingid):
