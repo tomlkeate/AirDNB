@@ -2,7 +2,7 @@
 # commands
 # python3 final.py create
 # python3 final.py adduser EMAIL USERNAME
-# python3 final.py addlisting USERNAME TITLE DESCRIPTION XCOORDINATE YCOORDINATE 
+# python3 final.py addlisting USERNAME TITLE DESCRIPTION XCOORDINATE YCOORDINATE
 # python3 final.py reserve USERNAME LISTINGID STARTDATE ENDDATE
 # python3 final.py search XCOORDINATE YCOORDINATE  RADIUS
 # python3 final.py userlistings USERNAME
@@ -232,23 +232,23 @@ def listingreservations(listingid):
                 Day2: {row[4]}
             """)
 
-@click.command()
-@click.argument('userId')
-@click.arguement('listingId')
 
-def listingreservations(,userId, listingId):
-    print('All reservations for user currently: ')
+@click.command()
+@click.argument('username')
+@click.argument('listingid')
+def seeWhosReserved(username, listingid):
+    print('All reservations for listing: ')
+    userId = verifyUser(username)
     with getdb() as con:
         cursor = con.cursor()
-        cursor.execute('SELECT * FROM Reservations WHERE ? = ?', (userId,listingid))
-        rows = cursor.fetchall()
-        for row in rows:
-            print(f"""
-                Id: {row[0]}
-                UserId: {row[1]}
-                Day1: {row[3]}
-                Day2: {row[4]}
-            """)
+        cursor.execute('SELECT COUNT(*) FROM Reservations WHERE listingId = ? AND userId != ?', (listingid, userId))
+        total_reservations = cursor.fetchone()[0]
+        print(f"Total reservations by other users: {total_reservations}")
+        
+
+
+
+        
 
 @click.command()
 @click.argument('username')
@@ -406,6 +406,7 @@ def help():
     print('adduser <email> <name>')
     print('addListing <username> <title> <description> <xcoordinate> <ycoordinate>')
     print('search <x> <y> <radius (optional)>')
+    print('seeWhosReserved <username> <listingid> ')
     # print('searchAll <x> <y>')
     print('userlistings <username>')
     print('delete <username> <listingid>')
@@ -440,6 +441,7 @@ def verifyUser(userName):
 cli.add_command(create)
 cli.add_command(adduser)
 cli.add_command(addListing)
+cli.add_command(seeWhosReserved)
 # cli.add_command(searchRadius)
 cli.add_command(search)
 cli.add_command(userlistings)
