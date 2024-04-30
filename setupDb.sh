@@ -6,11 +6,14 @@ PYTHON_SCRIPT="./final.py"
 # Create the database and schema
 python3 $PYTHON_SCRIPT create
 
+# add user and listing
+python3 $PYTHON_SCRIPT adduser "bob@hotmail.com" "bob"
+python3 $PYTHON_SCRIPT addlisting "bob" "bob's listing" "this is bob's listing" 10 10
 # Number of users to add
 NUM_USERS=20
 
 # Add users in a loop
-for i in $(seq 1 $NUM_USERS); do
+for i in $(seq 2 $NUM_USERS); do
     # Generate a unique username and email for each user
     USERNAME="User${i}"
     EMAIL="user${i}@example.com"
@@ -31,6 +34,7 @@ for i in $(seq 1 $NUM_USERS); do
     DAY2=$(( DAY1 + (RANDOM % 10) + 1))
     python3 $PYTHON_SCRIPT reserve "$USERNAME" "${i}" "$DAY1" "$DAY2"
     
+    python3 $PYTHON_SCRIPT reserve "$USERNAME" "1" "$DAY1" "$DAY2"
     # Add review
     RATING=$(( (RANDOM % 5) + 1))
     COMMENT="This is a review by ${i}."

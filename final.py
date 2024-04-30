@@ -399,6 +399,70 @@ def searchday(x,y,day1,day2):
                 Average Rating: {row[6]}
             """)
 
+
+@click.command()
+@click.argument('username')
+@click.argument('day1')
+@click.argument('day2')
+def recommendedlistings(username, day1, day2):
+    userId = verifyUser(username)
+    print('Recommending listings available between:', day1, 'and', day2)
+    with getdb() as con:
+        cursor = con.cursor()
+        cursor.execute('''
+        WITH RECURSIVE UserReservations AS (
+            SELECT
+                listingId
+            FROM
+                Reservations
+            WHERE
+                userId = ?
+        ),
+        SimilarListings AS (
+            SELECT
+                r.listingId,
+                COUNT(*) AS similarity
+            FROM
+                Reservations r
+            JOIN
+                UserReservations ur ON r.listingId = ur.listingId
+            WHERE
+                r.userId != ?
+            GROUP BY
+                r.listingId
+        ),
+        Recommendations AS (
+            SELECT
+                listingId,
+                similarity
+            FROM
+                SimilarListings
+        )
+        SELECT
+            l.id,
+            l.title,
+            l.description,
+            r.similarity
+        FROM
+            Listings l
+        LEFT JOIN
+            Reservations res ON l.id = res.listingId
+        ORDER BY
+            r.similarity DESC
+        LIMIT 10;
+        ''', (userId, userId))
+
+        rows = cursor.fetchall()
+        print('Found', len(rows), ' similiar listings available between:', day1, 'and', day2)
+        for row in rows:
+            print(f"""
+                Id: {row[0]}
+                Title: {row[1]}
+                Description: {row[2]}
+                similarity: {row[3]}
+            """)
+
+
 @click.command()
 def help():
     print('Commands:')
@@ -453,6 +517,7 @@ cli.add_command(cancel)
 cli.add_command(rate)
 cli.add_command(listingrating)
 cli.add_command(searchday)
+cli.add_command(recommendedlistings)
 cli.add_command(help)
 
 
