@@ -17,5 +17,6 @@
 ```bash
 git clone https://github.com/tomlkeate/AirDNB.git
 cd AirDNB
+```
 <img width="570" alt="Screenshot 2025-04-30 at 10 56 16 PM" src="https://github.com/user-attachments/assets/c93a9767-645f-4df5-8d60-82caab24b890" />
 
